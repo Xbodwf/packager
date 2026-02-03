@@ -1,0 +1,11 @@
+node_modules
+dist
+*.zip
+
+# Related to Node.js API and related demo scripts
+demo_output*
+.packager-cache
+packaged-project
+
+# macOS
+.DS_Store

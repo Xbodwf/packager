@@ -75,6 +75,7 @@
   };
 
   let fileInputElement;
+  let selectedFileName = '';
 
   const copyFileList = (files) => {
     const transfer = new DataTransfer();
@@ -94,6 +95,7 @@
       const storedFiles = inputForRememberingProjectFile.files;
       if (storedFiles.length) {
         fileInputElement.files = copyFileList(storedFiles);
+        selectedFileName = storedFiles[0].name;
       }
     });
   }
@@ -106,12 +108,18 @@
     if (inputForRememberingProjectFile) {
       inputForRememberingProjectFile.files = copyFileList(files);
     }
+    if (files.length) {
+      selectedFileName = files[0].name;
+    } else {
+      selectedFileName = '';
+    }
     if (files.length && $type === 'file') {
       // if $type was updated before calling this function, wait for the current task to get
       // cancelled before we start the next one
       tick().then(load);
     }
   };
+  
   const handleDrop = ({detail: dataTransfer}) => {
     const name = dataTransfer.files[0].name;
     if (name.endsWith('.sb') || name.endsWith('.sb2') || name.endsWith('.sb3')) {
@@ -119,8 +127,13 @@
       setFiles(dataTransfer.files);
     }
   };
+  
   const handleFileInputChange = (e) => {
     setFiles(e.target.files);
+  };
+  
+  const triggerFileInput = () => {
+    fileInputElement.click();
   };
 
   const internalLoad = async (task) => {
@@ -205,17 +218,120 @@
     max-width: 300px;
     flex-grow: 1;
   }
+  
   .options {
     margin: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
+  
   .option {
-    min-height: 25px;
+    min-height: 28px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 0;
   }
-  input[type="text"], input[type="file"] {
-    margin-left: 4px;
+  
+  .option label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-medium, 14px);
+    color: var(--md-sys-color-on-surface);
+  }
+  
+  /* Hidden file input */
+  .hidden-file-input {
+    display: none;
+  }
+  
+  /* M3 styled file picker */
+  .file-picker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .file-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: var(--md-sys-color-surface-container-high, #EDEDED);
+    color: var(--md-sys-color-primary, #C00100);
+    border: 1px solid var(--md-sys-color-outline, #79747E);
+    border-radius: var(--md-sys-shape-corner-full, 9999px);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large, 14px);
+    font-weight: var(--md-sys-typescale-weight-medium, 500);
+    cursor: pointer;
+    transition: 
+      background-color var(--md-sys-motion-duration-short2, 100ms) var(--md-sys-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1)),
+      border-color var(--md-sys-motion-duration-short2, 100ms) var(--md-sys-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1));
+    outline: none;
+  }
+  
+  .file-button:hover {
+    background-color: var(--md-sys-color-surface-container-highest, #E6E6E6);
+    border-color: var(--md-sys-color-primary, #C00100);
+  }
+  
+  .file-button:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary, #C00100);
+    outline-offset: 2px;
+  }
+  
+  .file-button svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .file-name {
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-small, 12px);
+    color: var(--md-sys-color-on-surface-variant, #49454F);
+    background-color: var(--md-sys-color-surface-container, #F3F3F3);
+    padding: 6px 12px;
+    border-radius: var(--md-sys-shape-corner-small, 8px);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .clear-file {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-full, 9999px);
+    color: var(--md-sys-color-on-surface-variant, #49454F);
+    cursor: pointer;
+    transition: background-color var(--md-sys-motion-duration-short2, 100ms) var(--md-sys-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1));
+  }
+  
+  .clear-file:hover {
+    background-color: rgba(var(--md-sys-color-error-rgb, 186, 26, 26), 0.08);
+    color: var(--md-sys-color-error, #BA1A1A);
+  }
+  
+  /* M3 Radio button styling */
+  :global(input[type="radio"]) {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--md-sys-color-primary, #C00100);
+    cursor: pointer;
   }
 </style>
 
@@ -246,7 +362,31 @@
           <input type="radio" name="project-type" bind:group={$type} value="file">
           {$_('select.file')}
         </label>
-        <input hidden={$type !== "file"} on:change={handleFileInputChange} bind:this={fileInputElement} type="file" accept=".sb,.sb2,.sb3">
+        {#if $type === "file"}
+          <input 
+            type="file" 
+            accept=".sb,.sb2,.sb3" 
+            bind:this={fileInputElement} 
+            on:change={handleFileInputChange}
+            class="hidden-file-input"
+          >
+          <div class="file-picker">
+            <button type="button" class="file-button" on:click={triggerFileInput}>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+              </svg>
+              {$_('select.file')}
+            </button>
+            {#if selectedFileName}
+              <span class="file-name" title={selectedFileName}>{selectedFileName}</span>
+              <button type="button" class="clear-file" on:click={() => { selectedFileName = ''; fileInputElement.value = ''; }} title="Clear">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+              </button>
+            {/if}
+          </div>
+        {/if}
       </div>
       <div class="option">
         <label>

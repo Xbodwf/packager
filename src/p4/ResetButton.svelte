@@ -14,41 +14,54 @@
 
 <style>
   button {
-    width: 26px;
-    height: 26px;
+    width: 36px;
+    height: 36px;
     margin: 0;
-    padding: 4px;
+    padding: 8px;
     border: none;
-    background: none;
+    background: transparent;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: var(--md-sys-shape-corner-full, 9999px);
+    color: var(--md-sys-color-on-surface-variant, #534342);
+    transition: 
+      background-color var(--md-sys-motion-duration-short2, 100ms) var(--md-sys-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1)),
+      color var(--md-sys-motion-duration-short2, 100ms) var(--md-sys-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
   }
+  
   button:hover {
-    background: rgba(0, 0, 0, 0.15);
+    background-color: rgba(var(--md-sys-color-primary-rgb, 186, 26, 26), 0.08);
+    color: var(--md-sys-color-primary, #BA1A1A);
   }
+  
   button:active {
-    background: rgba(0, 0, 0, 0.3);
+    background-color: rgba(var(--md-sys-color-primary-rgb, 186, 26, 26), 0.12);
   }
-  :global([theme="dark"]) button:hover {
-    background: rgba(255, 255, 255, 0.15);
+  
+  button:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary, #BA1A1A);
+    outline-offset: 2px;
   }
-  :global([theme="dark"]) button:active {
-    background: rgba(255, 255, 255, 0.3);
-  }
+  
   img {
-    width: 100%;
-    height: 100%;
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+    transition: opacity var(--md-sys-motion-duration-short2, 100ms) var(--md-sys-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1));
   }
-  :global([theme="dark"]) img {
-    filter: invert(100%);
+  
+  button:hover img {
+    opacity: 1;
   }
 </style>
 
-<button on:click={click}>
+<button on:click={click} title={$_('reset.reset')}>
   <img
     src={icon}
     draggable={false}
     alt={$_('reset.reset')}
-    title={$_('reset.reset')}
   >
 </button>
